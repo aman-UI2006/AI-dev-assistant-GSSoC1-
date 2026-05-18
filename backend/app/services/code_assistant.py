@@ -37,6 +37,17 @@ LANG_SIGNATURES: dict[str, list[str]] = {
 
 
 def detect_language(code: str, hint: str | None = None) -> str:
+    """Infer the programming language from source code or an optional hint.
+
+    Args:
+        code: Source code to analyze for language-specific signatures.
+        hint: Optional language name or alias (e.g. ``"py"``, ``"javascript"``).
+            When recognized, overrides pattern-based detection.
+
+    Returns:
+        Detected language name (e.g. ``"Python"``, ``"JavaScript"``), or
+        ``"Unknown"`` when no signatures match.
+    """
     if hint:
         normalized = hint.strip().lower()
         mapping = {
@@ -61,6 +72,14 @@ def detect_language(code: str, hint: str | None = None) -> str:
 
 # ── Complexity Estimation ──────────────────────────────────────────────────────
 def estimate_complexity(code: str) -> str:
+    """Estimate code complexity from line count, branches, and function count.
+
+    Args:
+        code: Source code to score.
+
+    Returns:
+        One of ``"Beginner"``, ``"Intermediate"``, ``"Advanced"``, or ``"Expert"``.
+    """
     lines = [line for line in code.splitlines() if line.strip() and not line.strip().startswith("#")]
     n = len(lines)
     branches = len(re.findall(r"\b(if|elif|else|for|while|switch|case|try|catch|except)\b", code))
@@ -226,6 +245,16 @@ BUG_PATTERNS: list[BugPattern] = [
 
 
 def run_bug_detection(code: str, language: str) -> list[dict]:
+    """Scan source code for rule-based bug patterns for the given language.
+
+    Args:
+        code: Source code to inspect line by line.
+        language: Detected language name used to filter applicable patterns.
+
+    Returns:
+        List of issue dicts, each with ``type``, ``line``, ``description``,
+        ``suggestion``, ``severity``, and ``code_snippet`` keys.
+    """
     lines = code.splitlines()
     found: list[dict] = []
     seen: set[str] = set()
@@ -261,6 +290,16 @@ def run_bug_detection(code: str, language: str) -> list[dict]:
 
 # ── Suggestion Engine ──────────────────────────────────────────────────────────
 def run_suggestions(code: str, language: str) -> dict:
+    """Generate improvement suggestions and an overall quality score.
+
+    Args:
+        code: Source code to evaluate for documentation, structure, and style.
+        language: Detected language name (affects language-specific checks).
+
+    Returns:
+        Dict with ``suggestions`` (list of recommendation dicts),
+        ``overall_score`` (0–100), ``grade`` (letter), and ``next_step`` (str).
+    """
     suggestions: list[dict] = []
     lines = code.splitlines()
     non_blank = [line for line in lines if line.strip()]
@@ -366,6 +405,16 @@ def run_suggestions(code: str, language: str) -> dict:
 
 # ── Explanation Engine ─────────────────────────────────────────────────────────
 def run_explanation(code: str, language: str) -> dict:
+    """Build a structured natural-language explanation of the source code.
+
+    Args:
+        code: Source code to summarize.
+        language: Detected language name included in the explanation.
+
+    Returns:
+        Dict with ``language``, ``summary``, ``key_points``, ``complexity``,
+        ``line_count``, ``function_count``, and ``class_count``.
+    """
     lines = code.splitlines()
     non_blank = [line for line in lines if line.strip()]
     complexity = estimate_complexity(code)
@@ -520,6 +569,17 @@ def debug_code(code: str, language: str = "Python") -> DebugResult:
 
 # ── Combined ───────────────────────────────────────────────────────────────────
 def full_analysis(code: str, language_hint: str | None = None) -> dict:
+    """Run the full rule-based analysis pipeline on source code.
+
+    Args:
+        code: Source code to analyze.
+        language_hint: Optional language name or alias passed to
+            :func:`detect_language`.
+
+    Returns:
+        Combined result dict with ``provider``, ``model``, ``explanation``,
+        ``debugging``, ``suggestions``, and ``analysis_time_ms``.
+    """
     t0 = time.perf_counter()
     language = detect_language(code, language_hint)
 
